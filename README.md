@@ -2,37 +2,81 @@
 
 An OpenCode plugin for compact GitLab operations and background pipeline/job monitoring. Push a commit or start a watch, continue working, and receive one result when the run finishes. No agent-written `sleep` loops or intermediate polling messages.
 
-## Install locally
+## Installation
 
-Requires OpenCode **1.18.30**, Bun **1.3.10**, Git, and an authenticated `glab` CLI. Tested with `glab` **1.115.0** on macOS. The subprocess runner uses POSIX process groups; Windows is not supported.
+Requires OpenCode **1.18.30**, Git, and an authenticated `glab` CLI. The subprocess runner uses POSIX process groups; Windows is not supported.
 
-1. Install dependencies and build:
+Choose one installation method below. The plugin is not published to npm yet, so the GitHub methods are the currently available options.
 
-    ```sh
-    bun install --frozen-lockfile
-    bun run build
-    ```
+### GitHub plugin spec
+
+OpenCode installs plugin package specs declared in `opencode.json`. Add the repository spec:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["github:navitronic/opencode-gitlab-pipeline"]
+}
+```
+
+This uses the current `main` branch. Replace `main` with a commit SHA or tag when reproducible plugin versions are required:
+
+```json
+{
+  "plugin": [
+    "git+https://github.com/navitronic/opencode-gitlab-pipeline.git#main"
+  ]
+}
+```
+
+OpenCode installs the package and its runtime dependency automatically. Restart OpenCode after changing `opencode.json`.
+
+### Clone and build
+
+Use this method for local development or when you want to review the source before loading it:
+
+1. Clone the repository, install dependencies, and build:
+
+   ```sh
+   git clone https://github.com/navitronic/opencode-gitlab-pipeline.git
+   cd opencode-gitlab-pipeline
+   bun install --frozen-lockfile
+   bun run build
+   ```
 
 2. Authenticate `glab` for the GitLab hosts you use:
 
-    ```sh
-    glab auth login --hostname gitlab.com
-    ```
+   ```sh
+   glab auth login --hostname gitlab.com
+   ```
 
-3. Add the built plugin's absolute file URL to your OpenCode configuration:
+3. Add the built plugin's absolute file URL to your OpenCode configuration. Replace the example path with the clone path:
 
-    ```json
-    {
-        "$schema": "https://opencode.ai/config.json",
-        "plugin": [
-            "file:///absolute/path/to/opencode-gitlab-pipeline/dist/index.js"
-        ]
-    }
-    ```
+   ```json
+   {
+     "$schema": "https://opencode.ai/config.json",
+     "plugin": [
+       "file:///absolute/path/to/opencode-gitlab-pipeline/dist/index.js"
+     ]
+   }
+   ```
 
 4. Quit and restart OpenCode. Ask it to watch a GitLab pipeline or job URL.
 
-This package is currently a local build, not an npm release. `bun.lock` pins the dependency graph. The plugin reuses `glab` authentication and host settings; it does not manage tokens.
+`bun.lock` pins the dependency graph. The plugin reuses `glab` authentication and host settings; it does not manage tokens.
+
+### npm package
+
+The package name is `opencode-gitlab-pipeline`, but no npm release exists yet. After a release is published, use the package name in `opencode.json`; OpenCode will install it automatically:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["opencode-gitlab-pipeline@0.1.0"]
+}
+```
+
+Do not add `@opencode-ai/plugin` separately. It is a runtime dependency of this plugin. The npm package includes the prebuilt `dist/index.js` entrypoint.
 
 ## Tools
 
@@ -60,8 +104,8 @@ The acknowledgment distinguishes **push success** from **CI success** and return
 
 ```json
 {
-    "action": "start",
-    "url": "https://gitlab.example.com/group/project/-/pipelines/123"
+  "action": "start",
+  "url": "https://gitlab.example.com/group/project/-/pipelines/123"
 }
 ```
 
@@ -85,9 +129,9 @@ Pass argument arrays, not shell syntax:
 
 ```json
 {
-    "args": ["mr", "list", "--output", "json"],
-    "host": "gitlab.example.com",
-    "repo": "group/project"
+  "args": ["mr", "list", "--output", "json"],
+  "host": "gitlab.example.com",
+  "repo": "group/project"
 }
 ```
 
@@ -101,9 +145,9 @@ Completion includes the exact target URL, SHA, raw GitLab status, and outcome. P
 
 ```json
 {
-    "jobURL": "https://gitlab.example.com/group/project/-/jobs/456",
-    "offset": 0,
-    "limit": 2048
+  "jobURL": "https://gitlab.example.com/group/project/-/jobs/456",
+  "offset": 0,
+  "limit": 2048
 }
 ```
 
